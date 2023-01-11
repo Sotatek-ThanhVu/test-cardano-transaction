@@ -1,0 +1,14 @@
+{
+  "name": "test-cardano-wallet-js",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "@emurgo/cardano-serialization-lib-nodejs": "^11.2.1",
+    "bip39": "^3.0.4"
+  }
+}
