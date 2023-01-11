@@ -12,9 +12,17 @@
  * 10. Check the balance
  */
 
+const {
+    TxBuilderConstants,
+    hash_transaction,
+} = require("@emurgo/cardano-serialization-lib-nodejs");
 const getProtocolParameter = require("./1.getProtocolParameter");
 const retrieveUTxO = require("./2.retrieveUTxO");
 const draftTransaction = require("./3.draftTransaction");
+const prepareOutput = require("./4.prepareOutput");
+const signTransaction = require("./5.signTransaction");
+const submitTransaction = require("./6.submitTransaction");
+
 const { MNEMONIC } = require("./constants");
 const { deriveAddress } = require("./utils");
 
@@ -24,39 +32,16 @@ const { deriveAddress } = require("./utils");
     const parameters = await getProtocolParameter(); // 1
     const utxo = await retrieveUTxO(address); // 2
     const draftTrx = draftTransaction(parameters); // 3
+    draftTrx.set_ttl(parameters.slot + 7200); // 6
+    const { txBody, txHash } = prepareOutput(draftTrx, utxo);
 
-    console.log(draftTrx);
+    const transaction = signTransaction(txBody, signKey); // 8
+
+    try {
+        const res = await submitTransaction(transaction.to_bytes());
+        console.log(`Transaction successfully submitted: ${txHash}`);
+    } catch (err) {
+        if (err.status_code === '400') console.log(`Transaction ${txHash} rejected\n`, err.message);
+        else console.log(err);
+    }
 })();
-
-// const {
-//     mnemonicToPrivateKey,
-//     deriveAddressPrvKey,
-//     request,
-//     composeTransaction,
-// } = require("./utils");
-// const { MNEMONIC } = require("./constants");
-
-// (async () => {
-//     const rootKey = mnemonicToPrivateKey(MNEMONIC);
-//     const { address, signKey } = deriveAddressPrvKey(rootKey);
-
-//     console.log(address);
-
-//     let utxo = [];
-//     try {
-//         utxo = await request({ endpoint: `/addresses/${address}/utxos` });
-//         if (utxo.length === 0) throw new Error("Empty UTxO");
-//     } catch (err) {
-//         console.log(err);
-//     }
-
-//     const { slot } = await request({ endpoint: `/blocks/latest` });
-
-//     const {} = composeTransaction(
-//         address,
-//         "addr_test1qztfvezwwpa7msmjacxggharyl7eawuhy3hzxculynsjzsmu3ke04ltk0yhgypejnwftwcz5yscfwecvanceepklty4sr806u9",
-//         "1000000", // 1 ADA
-//         utxo,
-//         slot
-//     );
-// })();

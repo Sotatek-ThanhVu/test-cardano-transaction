@@ -17,6 +17,7 @@ module.exports = async function () {
         keyDeposit: p.key_deposit,
         maxValSize: p.max_val_size,
         maxTxSize: p.max_tx_size,
+        coinsPerUtxoWord: p.coins_per_utxo_word,
         slot: latestBlock.slot,
-    }
+    };
 };
